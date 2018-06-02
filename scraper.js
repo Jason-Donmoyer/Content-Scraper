@@ -13,7 +13,7 @@ let date = new Date();
 
 // function to run scraper
 
-someFunction();
+siteScraper();
 
 // Main function
 function scrapeSite() {
@@ -44,8 +44,8 @@ function newPath() {
 
 // links to site and loops through desired content
 function siteScraper(csvData) {
-	request(mainURL, function(err, res, html) {
-		if (!err && res.statusCode === 200) {
+	request(mainURL, function(error, res, html) {
+		if (!error && res.statusCode === 200) {
 			let $ = cheerio.load(html);
 			$(".products li a").each(function() {
 				let shirtData = $(this).attr("href");
@@ -56,6 +56,41 @@ function siteScraper(csvData) {
 			logError(err);
 		}
 	});
+}
+
+// scrapes each page and writes data
+function scrapeDataSite(path, csv) {
+	let newURL = mainURL + path;
+
+	request(newURL, function(error, res, html) {
+		if (!error && res.statusCode === 200) {
+			let $ = cheerio.load(html);
+			let title = $("title").text();
+			let price = $("price").text();
+			let img = $(".shirt-picture img").attr("src");
+
+
+			// object to store the data
+			let meta = {
+				Title: title,
+				Price: price,
+				ImageURL: mainURL + img,
+				URL: newURL,
+				Time: date.toISOString().slice(11,19)
+			};
+
+			csvData.write(meta);
+		} else {
+			logError(err);
+		}
+	});
+}
+
+// error handling
+function logError(error) {
+	let errMessage = "Sorry you've encountered an error with the code (" + error.code + ")";
+	console.log(errMessage);
+	fs.appendFile("error-log", errMessage + " - " + date + "\n");
 }
 
 
