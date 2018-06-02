@@ -9,6 +9,8 @@
   "author": "Jason Donmoyer",
   "license": "ISC",
   "dependencies": {
+    "cheerio": "^1.0.0-rc.2",
+    "fast-csv": "^2.4.1",
     "request": "^2.87.0"
   },
   "devDependencies": {}

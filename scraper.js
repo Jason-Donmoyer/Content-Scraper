@@ -2,18 +2,16 @@
 const request = require("request");
 const cheerio = require("cheerio");
 const fs = require("fs");
-const JSON2csv = require("json2csv").parse;
-const http = require("http");
-const https = require("https");
+const json2csv = require("fast-csv");
+
 
 // target site variable and current date 
-let mainURL = "https://shirts4mike.com";
-let shirtsURL = "http://shirts4mike.com/shirts.php";
+let mainURL = "http://shirts4mike.com/";
 let date = new Date();
 
 // function to run scraper
 
-siteScraper();
+scrapeSite();
 
 // Main function
 function scrapeSite() {
@@ -22,10 +20,11 @@ function scrapeSite() {
 
 	// send the scraped data to the directory
 
-	let csvData = json2csv(scrapedData);
+	let csvData = json2csv.format({ headers: true });
 	let writeStream = fs.createWriteStream(newPath());
-	csvFormat.pipe(writeStream);
+	csvData.pipe(writeStream);
 
+	// runs the siteScraper function
 	siteScraper(csvData);
 }
 
@@ -44,29 +43,30 @@ function newPath() {
 
 // links to site and loops through desired content
 function siteScraper(csvData) {
-	request(mainURL, function(error, res, html) {
-		if (!error && res.statusCode === 200) {
+	request(mainURL, function(error, response, html) {
+		if (!error && response.statusCode === 200) {
 			let $ = cheerio.load(html);
 			$(".products li a").each(function() {
 				let shirtData = $(this).attr("href");
 
-				scrapeDataSite();
+				scrapeDataSite(shirtData, csvData);
 			});
 		} else {
-			logError(err);
+			console.log(error);
+			logError(error);
 		}
 	});
 }
 
 // scrapes each page and writes data
-function scrapeDataSite(path, csv) {
-	let newURL = mainURL + path;
+function scrapeDataSite(shirtData, csvData) {
+	let newURL = mainURL + shirtData;
 
-	request(newURL, function(error, res, html) {
-		if (!error && res.statusCode === 200) {
+	request(newURL, function(error, response, html) {
+		if (!error && response.statusCode === 200) {
 			let $ = cheerio.load(html);
 			let title = $("title").text();
-			let price = $("price").text();
+			let price = $(".price").text();
 			let img = $(".shirt-picture img").attr("src");
 
 
@@ -78,10 +78,10 @@ function scrapeDataSite(path, csv) {
 				URL: newURL,
 				Time: date.toISOString().slice(11,19)
 			};
-
+		
 			csvData.write(meta);
 		} else {
-			logError(err);
+			logError(error);
 		}
 	});
 }
@@ -90,7 +90,7 @@ function scrapeDataSite(path, csv) {
 function logError(error) {
 	let errMessage = "Sorry you've encountered an error with the code (" + error.code + ")";
 	console.log(errMessage);
-	fs.appendFile("error-log", errMessage + " - " + date + "\n");
+	fs.appendFile("scraper-error.log", errMessage + " - " + date + "\n");
 }
 
 
