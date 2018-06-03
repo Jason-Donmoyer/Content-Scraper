@@ -4,7 +4,6 @@ const cheerio = require("cheerio");
 const fs = require("fs");
 const json2csv = require("fast-csv");
 
-
 // target site variable and current date 
 let mainURL = "http://shirts4mike.com/";
 let date = new Date();
