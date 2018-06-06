@@ -80,14 +80,12 @@ request(mainURL, function(error, response, html){
 								
 
 								const json2csvParser = new Json2csvParser({ fields });
-								const csv = json2csvParser.parse(shirtsArr);//, function(err, csv) {
-									//if (err) console.log(err);
+								const csv = json2csvParser.parse(shirtsArr);
 									console.log(csv);
 									fs.writeFile(directory + "/" + todaysDate + ".csv", csv, function(err) {
 										if(err) throw err;
 										console.log('shirt info saved to data directory');
 									});
-								//});
 							} return shirtsArr;
 						} else {
 							logError(error);
